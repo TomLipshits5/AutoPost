@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoPost Console</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+    :root {
+      --bg: #0a1118;
+      --ink: #e9f0f7;
+      --muted: #9db0c4;
+      --card: #121c27;
+      --card-strong: #172230;
+      --border: #2b3b4d;
+      --brand: #2ad0b8;
+      --brand-ink: #09211f;
+      --danger: #ff7f8f;
+      --ok: #4ce0a7;
+      --shadow: 0 16px 34px rgba(2, 8, 16, 0.5);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(42, 208, 184, 0.18), transparent 50%),
+        radial-gradient(700px 360px at 95% 10%, rgba(73, 127, 255, 0.22), transparent 45%),
+        linear-gradient(160deg, #0b131d 0%, #0a0f16 100%);
+      min-height: 100vh;
+      padding: 28px 16px 40px;
+    }
+
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      background: linear-gradient(145deg, #182635 0%, #111b26 100%);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+      overflow: hidden;
+      position: relative;
+      animation: slide-in 0.45s ease;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -28px;
+      top: -34px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #4dd7ff 0%, #2f7cff 60%, transparent 62%);
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      letter-spacing: -0.02em;
+    }
+
+    .sub {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .statusbar {
+      margin-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .pill {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.88rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #0f1823;
+      padding: 8px 12px;
+    }
+
+    .pill.ok {
+      border-color: #2f745f;
+      background: #0f2d26;
+      color: #9ff0cf;
+    }
+
+    .grid {
+      margin-top: 18px;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .card {
+      grid-column: span 12;
+      background: linear-gradient(180deg, var(--card) 0%, var(--card-strong) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      animation: fade-up 0.45s ease both;
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      letter-spacing: 0.01em;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #b7c7d9;
+    }
+
+    input,
+    textarea,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid #33485d;
+      border-radius: 10px;
+      background: #0f1823;
+      color: var(--ink);
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #2ad0b8;
+      box-shadow: 0 0 0 3px rgba(42, 208, 184, 0.2);
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.14s ease, filter 0.14s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+    }
+
+    .btn {
+      background: linear-gradient(180deg, #149b8b 0%, #0d7a6d 100%);
+      color: #fff;
+    }
+
+    .btn.alt {
+      background: #142130;
+      color: #d4e5f7;
+      border: 1px solid #3b5168;
+    }
+
+    .btn.warn {
+      background: #2d171c;
+      border: 1px solid #6f3340;
+      color: #ffb0bb;
+    }
+
+    .hint {
+      font-size: 0.86rem;
+      color: var(--muted);
+      margin: 8px 0 0;
+    }
+
+    .jobs,
+    .creds {
+      margin-top: 10px;
+      border: 1px dashed #3d5165;
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(14, 24, 35, 0.75);
+      max-height: 240px;
+      overflow: auto;
+    }
+
+    .item {
+      border: 1px solid #314559;
+      background: #101a25;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+      font-size: 0.92rem;
+    }
+
+    .item:last-child {
+      margin-bottom: 0;
+    }
+
+    .mono {
+      font-family: "IBM Plex Mono", monospace;
+      word-break: break-all;
+      font-size: 0.84rem;
+    }
+
+    .toast {
+      margin-top: 12px;
+      font-size: 0.9rem;
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: none;
+      border: 1px solid;
+    }
+
+    .toast.show {
+      display: block;
+    }
+
+    .toast.ok {
+      color: #b6f9de;
+      background: #123227;
+      border-color: #2d6f5a;
+    }
+
+    .toast.error {
+      color: #ffd2d8;
+      background: #3a1b22;
+      border-color: #7a3947;
+    }
+
+    @media (min-width: 900px) {
+      .auth { grid-column: span 5; }
+      .cred { grid-column: span 3; }
+      .upload { grid-column: span 4; }
+      .monitor { grid-column: span 12; }
+      .row.two {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @keyframes fade-up {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slide-in {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <h1>AutoPost Console</h1>
+      <p class="sub">A lightweight control panel for your API. Register or login, store TikTok credentials, upload a video, and watch job status without jumping between tools.</p>
+      <div class="statusbar">
+        <div class="pill" id="apiHealth">API: checking...</div>
+        <div class="pill" id="authState">Auth: not connected</div>
+      </div>
+      <div id="toast" class="toast"></div>
+    </section>
+
+    <section class="grid">
+      <article class="card auth" style="animation-delay: 0.06s;">
+        <h2>Account & API Key</h2>
+        <div class="row two">
+          <div>
+            <label for="regEmail">Register email</label>
+            <input id="regEmail" type="email" placeholder="name@example.com">
+          </div>
+          <div>
+            <label for="regPassword">Register password</label>
+            <input id="regPassword" type="password" placeholder="At least 8 characters">
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="registerBtn">Register</button>
+        </div>
+        <hr>
+        <div class="row two">
+          <div>
+            <label for="loginEmail">Login email</label>
+            <input id="loginEmail" type="email" placeholder="name@example.com">
+          </div>
+          <div>
+            <label for="loginPassword">Login password</label>
+            <input id="loginPassword" type="password" placeholder="Your password">
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn alt" id="loginBtn">Login</button>
+          <button class="btn warn" id="clearKeyBtn">Clear Key</button>
+        </div>
+        <div style="margin-top: 10px;">
+          <label for="apiKey">Current API key</label>
+          <input id="apiKey" class="mono" type="text" placeholder="Will auto-fill after register/login">
+          <p class="hint">Stored in localStorage in this browser only.</p>
+        </div>
+      </article>
+
+      <article class="card cred" style="animation-delay: 0.12s;">
+        <h2>TikTok Credentials</h2>
+        <label for="ttOpenId">Open ID</label>
+        <input id="ttOpenId" type="text" placeholder="TikTok open_id">
+
+        <label for="ttAccessToken" style="margin-top: 8px;">Access Token</label>
+        <textarea id="ttAccessToken" class="mono" placeholder="TikTok access token"></textarea>
+
+        <label for="ttRefreshToken" style="margin-top: 8px;">Refresh Token (optional)</label>
+        <input id="ttRefreshToken" class="mono" type="text" placeholder="TikTok refresh token">
+
+        <div class="actions">
+          <button class="btn" id="saveCredBtn">Save Credential</button>
+          <button class="btn alt" id="loadCredBtn">Refresh List</button>
+        </div>
+
+        <div class="creds" id="credList"></div>
+      </article>
+
+      <article class="card upload" style="animation-delay: 0.18s;">
+        <h2>Upload Video</h2>
+        <label for="uploadTitle">Title</label>
+        <input id="uploadTitle" type="text" placeholder="My post title">
+
+        <label for="uploadDescription" style="margin-top: 8px;">Description</label>
+        <textarea id="uploadDescription" placeholder="Optional caption"></textarea>
+
+        <label for="credentialSelect" style="margin-top: 8px;">Use credential</label>
+        <select id="credentialSelect"></select>
+
+        <label for="uploadFile" style="margin-top: 8px;">Video file</label>
+        <input id="uploadFile" type="file" accept="video/*">
+
+        <div class="actions">
+          <button class="btn" id="uploadBtn">Queue Upload</button>
+        </div>
+      </article>
+
+      <article class="card monitor" style="animation-delay: 0.24s;">
+        <h2>Job Monitor</h2>
+        <div class="actions">
+          <button class="btn alt" id="summaryBtn">Load Summary</button>
+          <button class="btn alt" id="jobsBtn">Load Jobs</button>
+        </div>
+        <div class="jobs" id="summaryBox"></div>
+        <div class="jobs" id="jobsList"></div>
+      </article>
+    </section>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const apiKeyInput = $("apiKey");
+    const toast = $("toast");
+
+    function showToast(message, type = "ok") {
+      toast.textContent = message;
+      toast.className = `toast show ${type}`;
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => {
+        toast.className = "toast";
+      }, 3500);
+    }
+
+    function getApiKey() {
+      return apiKeyInput.value.trim();
+    }
+
+    function setApiKey(key) {
+      apiKeyInput.value = key || "";
+      localStorage.setItem("autopost_api_key", key || "");
+      refreshAuthState();
+    }
+
+    function headers(json = true) {
+      const h = {};
+      const key = getApiKey();
+      if (key) {
+        h["X-API-Key"] = key;
+      }
+      if (json) {
+        h["Content-Type"] = "application/json";
+      }
+      return h;
+    }
+
+    async function request(url, options = {}) {
+      const response = await fetch(url, options);
+      let data = null;
+      const text = await response.text();
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        data = { raw: text };
+      }
+
+      if (!response.ok) {
+        const detail = data && (data.detail || data.message || data.raw);
+        throw new Error(detail || `Request failed (${response.status})`);
+      }
+
+      return data;
+    }
+
+    async function checkHealth() {
+      try {
+        const data = await request("/api/status", { method: "GET" });
+        $("apiHealth").textContent = `API: ${data.status}`;
+        $("apiHealth").classList.toggle("ok", data.status === "healthy");
+      } catch (err) {
+        $("apiHealth").textContent = "API: unavailable";
+        showToast(err.message, "error");
+      }
+    }
+
+    function refreshAuthState() {
+      const key = getApiKey();
+      const state = $("authState");
+      if (key) {
+        state.textContent = "Auth: API key loaded";
+        state.classList.add("ok");
+      } else {
+        state.textContent = "Auth: not connected";
+        state.classList.remove("ok");
+      }
+    }
+
+    async function register() {
+      const payload = {
+        email: $("regEmail").value.trim(),
+        password: $("regPassword").value
+      };
+      if (!payload.email || !payload.password) {
+        showToast("Enter email and password to register.", "error");
+        return;
+      }
+
+      try {
+        const data = await request("/api/auth/register", {
+          method: "POST",
+          headers: headers(true),
+          body: JSON.stringify(payload)
+        });
+        setApiKey(data.api_key || "");
+        showToast("Registration successful. API key loaded.");
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    async function login() {
+      const payload = {
+        email: $("loginEmail").value.trim(),
+        password: $("loginPassword").value
+      };
+      if (!payload.email || !payload.password) {
+        showToast("Enter email and password to login.", "error");
+        return;
+      }
+
+      try {
+        const data = await request("/api/auth/login", {
+          method: "POST",
+          headers: headers(true),
+          body: JSON.stringify(payload)
+        });
+        setApiKey(data.api_key || "");
+        showToast("Login successful. API key loaded.");
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    async function saveCredential() {
+      if (!getApiKey()) {
+        showToast("Set your API key first.", "error");
+        return;
+      }
+
+      const payload = {
+        open_id: $("ttOpenId").value.trim(),
+        access_token: $("ttAccessToken").value.trim(),
+        refresh_token: $("ttRefreshToken").value.trim() || null
+      };
+
+      if (!payload.open_id || !payload.access_token) {
+        showToast("open_id and access_token are required.", "error");
+        return;
+      }
+
+      try {
+        await request("/api/auth/tiktok/token", {
+          method: "POST",
+          headers: headers(true),
+          body: JSON.stringify(payload)
+        });
+        showToast("TikTok credential saved.");
+        await loadCredentials();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    async function loadCredentials() {
+      if (!getApiKey()) {
+        showToast("Set your API key first.", "error");
+        return;
+      }
+
+      const credList = $("credList");
+      const select = $("credentialSelect");
+      credList.innerHTML = "Loading...";
+      select.innerHTML = "";
+
+      try {
+        const creds = await request("/api/auth/tiktok/credentials", {
+          method: "GET",
+          headers: headers(false)
+        });
+
+        if (!Array.isArray(creds) || creds.length === 0) {
+          credList.innerHTML = "<div class=\"item\">No credentials found yet.</div>";
+          select.innerHTML = "<option value=\"\">No credentials available</option>";
+          return;
+        }
+
+        credList.innerHTML = creds.map((c) => (
+          `<div class="item"><strong>ID ${c.id}</strong><br><span class="mono">open_id: ${c.open_id}</span><br>Status: ${c.is_active ? "active" : "inactive"}</div>`
+        )).join("");
+
+        select.innerHTML = creds.map((c) => (
+          `<option value="${c.id}">#${c.id} - ${c.open_id}</option>`
+        )).join("");
+      } catch (err) {
+        credList.innerHTML = "<div class=\"item\">Failed to load credentials.</div>";
+        showToast(err.message, "error");
+      }
+    }
+
+    async function queueUpload() {
+      if (!getApiKey()) {
+        showToast("Set your API key first.", "error");
+        return;
+      }
+
+      const title = $("uploadTitle").value.trim();
+      const description = $("uploadDescription").value.trim();
+      const credentialId = $("credentialSelect").value;
+      const file = $("uploadFile").files[0];
+
+      if (!title || !credentialId || !file) {
+        showToast("Title, credential, and video file are required.", "error");
+        return;
+      }
+
+      const form = new FormData();
+      form.append("title", title);
+      form.append("description", description);
+      form.append("tiktok_credential_id", credentialId);
+      form.append("file", file);
+
+      try {
+        const data = await request("/api/videos/upload", {
+          method: "POST",
+          headers: { "X-API-Key": getApiKey() },
+          body: form
+        });
+        showToast(`Upload queued as job #${data.id}.`);
+        await loadJobs();
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    async function loadSummary() {
+      if (!getApiKey()) {
+        showToast("Set your API key first.", "error");
+        return;
+      }
+
+      const box = $("summaryBox");
+      box.textContent = "Loading summary...";
+
+      try {
+        const data = await request("/api/jobs-summary", {
+          method: "GET",
+          headers: headers(false)
+        });
+
+        box.innerHTML = `
+          <div class="item"><strong>Total:</strong> ${data.total}</div>
+          <div class="item"><strong>Pending:</strong> ${data.pending}</div>
+          <div class="item"><strong>Processing:</strong> ${data.processing}</div>
+          <div class="item"><strong>Completed:</strong> ${data.completed}</div>
+          <div class="item"><strong>Failed:</strong> ${data.failed}</div>
+        `;
+      } catch (err) {
+        box.textContent = "Failed to load summary.";
+        showToast(err.message, "error");
+      }
+    }
+
+    async function loadJobs() {
+      if (!getApiKey()) {
+        showToast("Set your API key first.", "error");
+        return;
+      }
+
+      const jobsList = $("jobsList");
+      jobsList.textContent = "Loading jobs...";
+
+      try {
+        const jobs = await request("/api/videos", {
+          method: "GET",
+          headers: headers(false)
+        });
+
+        if (!Array.isArray(jobs) || jobs.length === 0) {
+          jobsList.innerHTML = "<div class=\"item\">No jobs yet.</div>";
+          return;
+        }
+
+        jobsList.innerHTML = jobs.map((job) => (
+          `<div class="item">
+            <strong>#${job.id} ${job.title}</strong><br>
+            Status: ${job.status}<br>
+            Created: ${new Date(job.created_at).toLocaleString()}
+          </div>`
+        )).join("");
+      } catch (err) {
+        jobsList.textContent = "Failed to load jobs.";
+        showToast(err.message, "error");
+      }
+    }
+
+    function wire() {
+      $("registerBtn").addEventListener("click", register);
+      $("loginBtn").addEventListener("click", login);
+      $("saveCredBtn").addEventListener("click", saveCredential);
+      $("loadCredBtn").addEventListener("click", loadCredentials);
+      $("uploadBtn").addEventListener("click", queueUpload);
+      $("summaryBtn").addEventListener("click", loadSummary);
+      $("jobsBtn").addEventListener("click", loadJobs);
+      $("clearKeyBtn").addEventListener("click", () => {
+        setApiKey("");
+        showToast("API key cleared.");
+      });
+      apiKeyInput.addEventListener("change", () => setApiKey(apiKeyInput.value.trim()));
+    }
+
+    function boot() {
+      const savedKey = localStorage.getItem("autopost_api_key") || "";
+      apiKeyInput.value = savedKey;
+      refreshAuthState();
+      wire();
+      checkHealth();
+      if (savedKey) {
+        loadCredentials();
+        loadSummary();
+        loadJobs();
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>

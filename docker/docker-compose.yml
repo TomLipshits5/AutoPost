@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   autopost-api:
+    container_name: AutoPost
     build:
       context: ..
       dockerfile: docker/Dockerfile
