@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  autopost-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=INFO
+      - DATABASE_URL=sqlite:///./data/autopost.db
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-secret-key-change-in-production}
+      - TIKTOK_CLIENT_KEY=${TIKTOK_CLIENT_KEY}
+      - TIKTOK_CLIENT_SECRET=${TIKTOK_CLIENT_SECRET}
+      - TIKTOK_OAUTH_REDIRECT_URI=${TIKTOK_OAUTH_REDIRECT_URI:-http://localhost:8000/api/auth/tiktok/callback}
+      - UPLOAD_DIR=./uploads
+      - UPLOAD_CHECK_INTERVAL=10
+      - MAX_RETRIES=5
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    networks:
+      - autopost-network
+
+networks:
+  autopost-network:
+    driver: bridge
