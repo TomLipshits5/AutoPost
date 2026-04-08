@@ -1,0 +1,10 @@
+# Runtime databases
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Project data artifacts
+data/*.backup
+data/*.migrated.backup

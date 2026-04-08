@@ -18,8 +18,8 @@ services:
       - UPLOAD_CHECK_INTERVAL=10
       - MAX_RETRIES=5
     volumes:
-      - ./data:/app/data
-      - ./uploads:/app/uploads
+      - ../data:/app/data
+      - ../uploads:/app/uploads
     restart: unless-stopped
     networks:
       - autopost-network
